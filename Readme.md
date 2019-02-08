@@ -27,7 +27,7 @@ let storage = new MongoStorage(
 let conversationState = new ConversationState(storage);
 let userState = new UserState(storage);
 
-js```
+```
 
 
 ## API
