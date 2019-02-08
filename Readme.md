@@ -6,7 +6,7 @@ This package gives ability to use MongoDB as session storage for Botframewok v4.
 ## Instructions:
 ### 1. Install the package:
 ```
-npm i botbuilder-storage-mongo-v4
+npm i @kevit/botbuilder-storage-mongo-v4
 ```
 
 ### 2. Use the storage:

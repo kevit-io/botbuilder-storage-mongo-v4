@@ -1,5 +1,5 @@
 {
-  "name": "botbuilder-storage-mongo-v4",
+  "name": "@kevit/botbuilder-storage-mongo-v4",
   "version": "1.0.0",
   "description": "Botbuilder v4 MongoDB Storage",
   "main": "index.js",
