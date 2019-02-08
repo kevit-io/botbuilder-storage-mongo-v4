@@ -12,7 +12,7 @@
     "mongo"
   ],
   "author": "Piyush Kacha <piyush.kacha@kevit.io>",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "dependencies": {
     "mongodb": "^3.1.13"
   },
