@@ -59,7 +59,7 @@ class MongoStorage {
                 .then(results => {
                     results.forEach(item => {
                         if (item) {
-                            data[item.key] = item.memory;
+                            data[item.key] = JSON.parse(item.memory);
                         }
                         //console.log('Read Data:', data);
                         resolve(data);
@@ -81,9 +81,10 @@ class MongoStorage {
         function updateItem(key, item) {
             const clone = Object.assign({}, item);
             clone.eTag = (_this.etag++).toString();
+            let stringifyClone = JSON.stringify(clone);
             _this.database
                 .collection(_this.collectionName)
-                .findOneAndUpdate({key: key}, {memory: clone}, {new: true})
+                .findOneAndUpdate({key: key}, {memory: stringifyClone}, {new: true})
                 .then(result => {
                     //console.log('Update in Item ');
                 })
@@ -96,6 +97,7 @@ class MongoStorage {
         function insertItem(key, item) {
             const clone = Object.assign({}, item);
             clone.eTag = (_this.etag++).toString();
+            let stringifyClone = JSON.stringify(clone);
             _this.database
                 .collection(_this.collectionName)
                 .findOneAndDelete({
@@ -105,7 +107,7 @@ class MongoStorage {
                     //console.log('Deleted Record:', res);
                     return _this.database.collection(_this.collectionName).insertOne({
                         key: key,
-                        memory: clone,
+                        memory: stringifyClone,
                     });
                 })
                 .then(result => {
