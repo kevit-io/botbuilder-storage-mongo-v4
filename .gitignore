@@ -34,3 +34,6 @@ npm-debug.log
 
 #Visual studio file
 .vscode/
+
+# Build Files
+lib/
