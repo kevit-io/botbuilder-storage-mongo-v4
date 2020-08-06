@@ -18,6 +18,10 @@
   "dependencies": {
     "mongodb": "^3.6.0"
   },
+  "files": [
+    "/lib",
+    "/src"
+  ],
   "devDependencies": {
     "eslint": "^7.3.1",
     "prettier": "^2.0.5",

@@ -7,11 +7,9 @@ import {
   BulkWriteOperation,
 } from 'mongodb';
 
-export interface MongoStorageConfig {
-  uri: string;
-  database: string;
-  collection: string;
-  options: MongoClientOptions;
+export interface MongoStorageOptions extends MongoClientOptions {
+  databaseName?: string;
+  collectionName?: string;
 }
 
 interface MongoDocumentStoreItem {
@@ -20,54 +18,55 @@ interface MongoDocumentStoreItem {
   etag: string;
 }
 
-export default class MongoStore implements Storage {
-  private config: MongoStorageConfig;
+export class MongoStore implements Storage {
+  private uri: string;
+
+  private databaseName: string;
+
+  private collectionName: string;
+
+  private options: MongoClientOptions | undefined;
 
   private client: MongoClient;
-
-  public static readonly NO_CONFIG_ERROR: Error = new Error(
-    'MongoStorageConfig is required.'
-  );
 
   public static readonly NO_URL_ERROR: Error = new Error(
     'MongoStorageConfig.uri is required.'
   );
 
-  static readonly DEFAULT_DATABASE_NAME: 'botstorage';
+  static readonly DEFAULT_DATABASE_NAME = 'botstorage';
 
-  static readonly DEFAULT_COLLECTION_NAME: 'conversations';
+  static readonly DEFAULT_COLLECTION_NAME = 'conversations';
 
-  constructor(config: MongoStorageConfig) {
+  constructor(uri: string, options?: MongoStorageOptions) {
     // throw error if configs are missing
-    if (!config) throw MongoStore.NO_CONFIG_ERROR;
-    if (!config.uri || config.uri.trim() === '') throw MongoStore.NO_URL_ERROR;
+    if (!uri || uri.trim() === '') throw MongoStore.NO_URL_ERROR;
+    this.uri = uri;
 
-    // assign config to instance
-    this.config = config;
+    const { databaseName = '', collectionName = '', ...clientOptions } =
+      options || {};
 
-    // add default values
-    if (!this.config.database || this.config.database.trim() === '') {
-      this.config.database = MongoStore.DEFAULT_DATABASE_NAME;
-    }
-    if (!this.config.collection || this.config.collection.trim() === '') {
-      this.config.collection = MongoStore.DEFAULT_COLLECTION_NAME;
-    }
+    this.options = clientOptions;
 
-    this.client = new MongoClient(this.config.uri, this.config.options);
+    this.databaseName = databaseName.trim()
+      ? databaseName.trim()
+      : MongoStore.DEFAULT_DATABASE_NAME;
+    this.collectionName = collectionName.trim()
+      ? collectionName.trim()
+      : MongoStore.DEFAULT_COLLECTION_NAME;
+
+    this.client = new MongoClient(this.uri, this.options);
   }
 
   // ensure the connection with database
   public async ensureConnected(): Promise<void> {
-    if (!this.client.isConnected) {
+    if (!this.client.isConnected()) {
       await this.client.connect();
     }
   }
 
   // database collection for state storage
   get storageCollection(): Collection<MongoDocumentStoreItem> {
-    return this.client
-      .db(this.config.database)
-      .collection(this.config.collection);
+    return this.client.db(this.databaseName).collection(this.collectionName);
   }
 
   // read state keys from database
