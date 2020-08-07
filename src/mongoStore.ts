@@ -8,13 +8,15 @@ import {
 } from 'mongodb';
 
 export interface MongoStorageOptions extends MongoClientOptions {
+  storageKey?: string;
   databaseName?: string;
   collectionName?: string;
 }
 
-interface MongoDocumentStoreItem {
-  _id: string;
+interface MongoStoreDocument extends StoreItems {
+  _id?: string;
   state: Record<string, unknown> | string;
+  date?: Date;
   etag: string;
 }
 
@@ -25,12 +27,14 @@ export class MongoStore implements Storage {
 
   private collectionName: string;
 
+  private key: string;
+
   private options: MongoClientOptions | undefined;
 
   private client: MongoClient;
 
   public static readonly NO_URL_ERROR: Error = new Error(
-    'MongoStorageConfig.uri is required.'
+    'MongoStore.uri is required.'
   );
 
   static readonly DEFAULT_DATABASE_NAME = 'botstorage';
@@ -42,10 +46,16 @@ export class MongoStore implements Storage {
     if (!uri || uri.trim() === '') throw MongoStore.NO_URL_ERROR;
     this.uri = uri;
 
-    const { databaseName = '', collectionName = '', ...clientOptions } =
-      options || {};
+    const {
+      databaseName = '',
+      collectionName = '',
+      storageKey = '_id',
+      ...clientOptions
+    } = options || {};
 
     this.options = clientOptions;
+
+    this.key = storageKey;
 
     this.databaseName = databaseName.trim()
       ? databaseName.trim()
@@ -65,7 +75,7 @@ export class MongoStore implements Storage {
   }
 
   // database collection for state storage
-  get storageCollection(): Collection<MongoDocumentStoreItem> {
+  get storageCollection(): Collection<MongoStoreDocument> {
     return this.client.db(this.databaseName).collection(this.collectionName);
   }
 
@@ -77,8 +87,8 @@ export class MongoStore implements Storage {
     await this.ensureConnected();
     const docs = this.storageCollection.find({ _id: { $in: stateKeys } });
     const storeItems: StoreItems = (await docs.toArray()).reduce(
-      (accum: Record<string, MongoDocumentStoreItem>, item) => {
-        accum[item._id] = JSON.parse(item.state as string);
+      (accum: Record<string, MongoStoreDocument>, item) => {
+        accum[item[this.key]] = JSON.parse(item.state as string);
         return accum;
       },
       {}
@@ -92,13 +102,13 @@ export class MongoStore implements Storage {
       return;
     }
     await this.ensureConnected();
-    const operations = [] as BulkWriteOperation<MongoDocumentStoreItem>[];
+    const operations = [] as BulkWriteOperation<MongoStoreDocument>[];
     Object.keys(changes).forEach((key) => {
       const state = changes[key];
       state.eTag = new ObjectID().toHexString();
       operations.push({
         updateOne: {
-          filter: { _id: key },
+          filter: { [this.key]: key },
           update: {
             $set: {
               state: JSON.stringify(state),
@@ -119,6 +129,6 @@ export class MongoStore implements Storage {
       return;
     }
     await this.ensureConnected();
-    await this.storageCollection.deleteMany({ _id: { $in: keys } });
+    await this.storageCollection.deleteMany({ [this.key]: { $in: keys } });
   }
 }
