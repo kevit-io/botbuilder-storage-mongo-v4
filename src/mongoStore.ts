@@ -7,7 +7,7 @@ import {
   BulkWriteOperation,
 } from 'mongodb';
 
-export interface MongoStorageOptions extends MongoClientOptions {
+export interface MongoStoreOptions extends MongoClientOptions {
   storageKey?: string;
   databaseName?: string;
   collectionName?: string;
@@ -41,7 +41,7 @@ export class MongoStore implements Storage {
 
   static readonly DEFAULT_COLLECTION_NAME = 'conversations';
 
-  constructor(uri: string, options?: MongoStorageOptions) {
+  constructor(uri: string, options?: MongoStoreOptions) {
     // throw error if configs are missing
     if (!uri || uri.trim() === '') throw MongoStore.NO_URL_ERROR;
     this.uri = uri;
@@ -66,6 +66,8 @@ export class MongoStore implements Storage {
 
     this.client = new MongoClient(this.uri, this.options);
   }
+
+  public connect = this.client.connect;
 
   // ensure the connection with database
   public async ensureConnected(): Promise<void> {

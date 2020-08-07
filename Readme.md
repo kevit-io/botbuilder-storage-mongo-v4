@@ -1,39 +1,115 @@
-Bot Framework v4 MongoDB Storage
+Bot Framework MongoDB Storage (Compatible V4+)
 --------------------------------
 
-This package gives ability to use MongoDB as session storage for Botframewok v4.x
+### Descriptions:
 
-## Instructions:
-### 1. Install the package:
+This project gives ability to use mongodb as storage for [Bot Framework-JS SDK V4+](https://github.com/Microsoft/botbuilder-js).
+
+It provides resilient solution to store bot state so that you can scale out your bot.
+
+
+
+## Installation:
 ```
-npm i @kevit/botbuilder-storage-mongo-v4
-```
-
-### 2. Use the storage:
-``` 
-const {MongoStorage} = require('botbuilder-storage-mongo-v4');
-
-/**
-* @param connectionUrl - its specify the mongodb URL, Example: mongodb://127.0.0.1:27017/
-* @param databaseName - its specify the mongodb Database Name, Example: BotStorage
-* @param collectionName - its specify the mongodb collectionName, Example: UserData
-*/
-let storage = new MongoStorage(
-  connectionUrl,
-  databaseName,
-  collectionName,
-);
-
-let conversationState = new ConversationState(storage);
-let userState = new UserState(storage);
-
+npm install @kevit/botbuilder-storage-mongo-v4
 ```
 
+**Latest improved feature**
 
-## API
-`MongoStorage` constructor takes 3 values as arguments
-1. Connection URL
-2. Database Name
-3. Collection Name
+- Usage of multi read and bulk write
+- Improved constructor gives ability to customise mongodb connections
 
-After creating instance of `MongoStorage` you can pass ot as arguments in `ConversationState` & `UserState`.
+
+
+## Usage
+
+### JavaScript : 
+
+```javascript
+// Package
+const { MongoStorage } = require('botbuilder-storage-mongo-v4');
+
+// Options (Optional)
+const options = {
+  databaseName: 'foobar', // default : 'botStorage'
+  collectionName: 'conversations', // default : 'conversations'
+  // other mongo client options
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+// construct
+const storage = new MongoStore(<YOUR_CONNECTION_STRING>, options);
+```
+
+#### TypeScript
+
+``` typescript
+// Package
+import { MongoStore, MongoStoreOptions } from 'botbuilder-storage-mongo-v4';
+
+// Options (Optional)
+const options: MongoStoreOptions = {
+  databaseName: 'foobar', // default : 'botStorage'
+  collectionName: 'conversations', // default : 'conversations'
+  // other mongo client options
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+// construct
+const storage = new MongoStore(<YOUR_CONNECTION_STRING>, options);
+```
+
+#### Storage Usage
+
+```typescript
+const conversationState = new ConversationState(storage);
+const userState = new UserState(storage);
+```
+
+
+
+## Extra
+
+1. Storage automatically connects with database but on first query to override the behaviour
+
+   ```typescript
+   await storage.connect()
+   
+   /** or **/
+   
+   storage
+     .connect()
+     .then((client) => console.log('Connected :', client.isConnected()))
+     .catch((err) => console.error('Error', err));
+   ```
+
+2. User custom key as storage key  [ default : `_id` ]
+
+   ```typescript
+   // define storage key in options
+   const storage = new MongoStore(<YOUR_CONNECTION_STRING>, { storageKey: 'conversationId' });
+   
+   // create index for perfomance for storage-key
+   storage
+     .connect()
+     .then(() =>
+       storage.storageCollection.createIndex({ conversationId: 1 }, { unique: true, background: true })
+     );
+   
+   // Info : if you were using older versions then storageKey should be "key" ( options = { storageKey: 'key' } )
+   ```
+
+3. If your database has extra authentication then you can add other mongodb options
+
+   ```typescript
+   const storage = new MongoStore(<YOUR_CONNECTION_STRING>, {
+     auth: {
+       user: 'user',
+       password: 'password',
+     },
+   });
+   ```
+
+   
