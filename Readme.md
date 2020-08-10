@@ -27,7 +27,7 @@ npm install @kevit/botbuilder-storage-mongo-v4
 
 ```javascript
 // Package
-const { MongoStorage } = require('botbuilder-storage-mongo-v4');
+const { MongoStore } = require('botbuilder-storage-mongo-v4');
 
 // Options (Optional)
 const options = {
