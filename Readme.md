@@ -72,7 +72,7 @@ const userState = new UserState(storage);
 
 ## Extra
 
-1. Storage automatically connects with database but on first query to override the behaviour
+1. Storage automatically connects with database on first query but to override the behaviour
 
    ```typescript
    await storage.connect()

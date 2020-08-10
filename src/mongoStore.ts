@@ -67,6 +67,8 @@ export class MongoStore implements Storage {
       : MongoStore.DEFAULT_COLLECTION_NAME;
 
     this.client = new MongoClient(this.uri, this.options);
+
+    // expose connect method
     this.connect = this.client.connect.bind(this.client);
   }
 
