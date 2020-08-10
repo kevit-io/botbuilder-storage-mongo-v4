@@ -88,7 +88,9 @@ export class MongoStore implements Storage {
       return {};
     }
     await this.ensureConnected();
-    const docs = this.storageCollection.find({ _id: { $in: stateKeys } });
+    const docs = this.storageCollection.find({
+      [this.key]: { $in: stateKeys },
+    });
     const storeItems: StoreItems = (await docs.toArray()).reduce(
       (accum: Record<string, MongoStoreDocument>, item) => {
         accum[item[this.key]] = JSON.parse(item.state as string);
