@@ -14,7 +14,7 @@
   "author": "Piyush Kacha <piyush.kacha@kevit.io>",
   "license": "GPL-3.0",
   "dependencies": {
-    "mongodb": "5.7.0"
+    "mongodb": "5.8.0"
   },
   "devDependencies": {},
   "repository": {
